@@ -18,9 +18,9 @@ make
 
 ## Run
 
-Run the `scanner` executable with *root permissions*:
+Run the `dumper` executable with *root permissions*:
 ```
-sudo ./scanner
+sudo ./dumper
 ```
 **sudo** is mandatory to have read/write access to `/proc/<pid>/mem` file.
 

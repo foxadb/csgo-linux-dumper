@@ -4,11 +4,13 @@
 #include "utils.h"
 
 int main(int argc, char* argv[]) {
+  printf("CS:GO offsets dumper for Linux x64 (by foxadb)\n");
+
   // Process id
   long pid = findPidByName("csgo_linux64");
 
   if (pid == -1) {
-    fprintf(stderr, "Process id not found\n");
+    fprintf(stderr, "Process not found: Please run csgo_linux64\n");
     return EXIT_FAILURE;
   }
 
@@ -30,10 +32,10 @@ int main(int argc, char* argv[]) {
   int health, armor;
 
   readMemory(pid, healthAddr, &health, sizeof(health));
-  printf("(0x%lx) Health: %d\n", healthAddr, health);
+  printf("Health (%d): %lx\n", health, healthAddr - heapStart);
 
   readMemory(pid, armorAddr, &armor, sizeof(armor));
-  printf("(0x%lx) Armor: %d\n", armorAddr, armor);
+  printf("Armor (%d): %lx\n", armor, armorAddr - heapStart);
 
   return EXIT_SUCCESS;
 }

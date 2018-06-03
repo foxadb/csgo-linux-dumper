@@ -8,7 +8,7 @@
 #include <sys/uio.h>
 #include <unistd.h>
 
-long findPidByName(char* procname) {
+long findPidByName(char* processName) {
   // Pid to be returned
   long pid = -1;
 
@@ -16,7 +16,7 @@ long findPidByName(char* procname) {
   regex_t number;
   regex_t name;
   regcomp(&number, "^[0-9]\\+$", 0);
-  regcomp(&name, procname, 0);
+  regcomp(&name, processName, 0);
 
   // Go to proc dir and open it
   chdir("/proc");
@@ -152,13 +152,15 @@ int memoryPatternScan(long pid, unsigned long startAddr, unsigned long endAddr,
 
   unsigned long scanZone = endAddr - startAddr - size;
   while (scanZone > 0) {
+    // Read bytes from memory
     process_vm_readv(pid, local, 1, remote, 1, 0);
 
-    // Comparing bytes
+    // Comparing bytes loop
     size_t counter = 0;
     for (size_t i = 0; i < size; ++i) {
       char remoteByte = buf[i];
 
+      // Parsing a pattern byte from string
       char byteStr[2];
       byteStr[0] = pattern[2 * i];
       byteStr[1] = pattern[2 * i + 1];
@@ -168,16 +170,22 @@ int memoryPatternScan(long pid, unsigned long startAddr, unsigned long endAddr,
         ++counter;
       } else {
         char patternByte = (char)strtol(byteStr, NULL, 16);
-        counter += (remoteByte == patternByte);
+        if (remoteByte == patternByte) {
+          counter += 1;
+        } else {
+          break;
+        }
       }
     }
 
-    // Check if bytes match
+    // Check if all bytes match
     if (counter == size) {
       free(buf);
       *addr = (unsigned long)remote[0].iov_base + offset;
       return 0;
     }
+
+    // Skip to next address
     ++remote[0].iov_base;
     --scanZone;
   }
