@@ -1,4 +1,5 @@
 #define _GNU_SOURCE
+#include "utils.h"
 #include <dirent.h>
 #include <fcntl.h>
 #include <regex.h>
@@ -59,22 +60,21 @@ long findPidByName(char* processName) {
   return pid;
 }
 
-void findHeapAddress(long pid, unsigned long* heapStart,
-                     unsigned long* heapEnd) {
+void findMapRegionAddress(long pid, char* name, unsigned long* start,
+                          unsigned long* end) {
   // Open maps file
   char mapsfile[64];
   sprintf(mapsfile, "/proc/%ld/maps", pid);
   FILE* fp = fopen(mapsfile, "r");
   if (fp == NULL) {
-    *heapStart = -1;
+    *start = -1;
   } else {
     // Read the maps file
     char* line = NULL;
     size_t len = 0;
-    char* heapWord = "[heap]";
     int found = 0;
-    while (getline(&line, &len, fp) != -1 && !found) {
-      if (strstr(line, heapWord) != NULL) {
+    while (getline(&line, &len, fp) != -1) {
+      if (strstr(line, name) != NULL) {
         char addr1[16];
         char addr2[16];
         int i = 0;
@@ -95,9 +95,11 @@ void findHeapAddress(long pid, unsigned long* heapStart,
         }
         addr2[i - off] = '\0';
 
-        // Parse heap start and end address
-        *heapStart = (unsigned long)strtol(addr1, NULL, 16);
-        *heapEnd = (unsigned long)strtol(addr2, NULL, 16);
+        // Parse start and end address
+        if (!found) {
+          *start = (unsigned long)strtol(addr1, NULL, 16);
+        }
+        *end = (unsigned long)strtol(addr2, NULL, 16);
 
         // Found
         found = 1;
@@ -138,12 +140,12 @@ int writeMemory(long pid, unsigned long addr, void* buffer, size_t size) {
   return (process_vm_writev(pid, local, 1, remote, 1, 0) == size);
 }
 
-int memoryPatternScan(long pid, unsigned long startAddr, unsigned long endAddr,
-                      char* pattern, size_t size, size_t offset,
-                      unsigned long* addr) {
+void memoryPatternScan(long pid, unsigned long startAddr, unsigned long endAddr,
+                       char* pattern, size_t size, size_t offset,
+                       unsigned long* addr) {
+  char* buf = malloc(size * sizeof(char));  // local buffer
   struct iovec local[1];
   struct iovec remote[1];
-  char* buf = malloc(size * sizeof(char));  // local buffer
 
   local[0].iov_base = buf;
   local[0].iov_len = size;
@@ -180,9 +182,8 @@ int memoryPatternScan(long pid, unsigned long startAddr, unsigned long endAddr,
 
     // Check if all bytes match
     if (counter == size) {
-      free(buf);
       *addr = (unsigned long)remote[0].iov_base + offset;
-      return 0;
+      break;
     }
 
     // Skip to next address
@@ -190,6 +191,5 @@ int memoryPatternScan(long pid, unsigned long startAddr, unsigned long endAddr,
     --scanZone;
   }
 
-  free(buf);
-  return -1;
+  free(buf);  // free local buffer
 }

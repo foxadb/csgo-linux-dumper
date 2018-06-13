@@ -1,10 +1,11 @@
-# CS:GO pattern scanner for Linux x64
+# CS:GO offsets dumper for Linux x64
 
-This tool aimed to get offsets of Counter Strike: Global Offensive on 64 bits Linux.
+This tool aims to get offsets of Counter Strike: Global Offensive on 64 bits Linux.
+It uses pattern scanning to find offsets.
 
 *Tested on Arch Linux x86_64.*
 
-:warning: I am not liable for VAC bans for using this tool.
+:warning: I am not liable for VAC bans for using this program.
 
 ## Build
 

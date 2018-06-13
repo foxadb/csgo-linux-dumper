@@ -1,6 +1,6 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 
-project(csgo-linux-dumper)
+project(csgo-linux-dumper C)
 
 # Source files
 file(GLOB HEADERS src/*.h)
