@@ -10,4 +10,7 @@
 #define OFF_HEALTH 0x134
 #define OFF_LIFESTATE 0x293
 
+// PlayerResources
+#define OFF_NAMES 0xf78
+
 #endif
