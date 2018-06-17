@@ -5,8 +5,9 @@
 #ifndef OFFSETS_H
 #define OFFSETS_H
 
-// From LocalPlayer
-#define OFF_MY_TEAM 0x128
-#define OFF_MY_HEALTH 0x134
+// Entity
+#define OFF_TEAM 0x128
+#define OFF_HEALTH 0x134
+#define OFF_LIFESTATE 0x293
 
 #endif

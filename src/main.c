@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include "offsets.h"
 #include "patterns.h"
 #include "utils.h"
@@ -24,29 +25,31 @@ int main(int argc, char* argv[]) {
   }
   printf("client_client.so: 0x%lx - 0x%lx\n", clientStart, clientEnd);
 
-  printf("Scanning memory...\n");
+  printf("Scanning memory...\n\n");
+  time_t startTime = clock();
 
   unsigned long localPlayerLea = 0;
   memoryPatternScan(pid, clientStart, clientEnd, PAT_LOCALPLAYER_LEA,
-                    PAT_LOCALPLAYER_LEA_SIZE, PAT_LOCALPLAYER_LEA_OFF, &localPlayerLea);
+                    PAT_LOCALPLAYER_LEA_SIZE, PAT_LOCALPLAYER_LEA_OFF,
+                    &localPlayerLea);
 
-  unsigned long code = 0;
-  readMemory(pid, localPlayerLea, &code, sizeof(unsigned int));
-  unsigned long m_addressOfLocalPlayer =
-      localPlayerLea + code + 0x4;
+  unsigned long localPlayerPtr = 0;
+  readMemory(pid, localPlayerLea, &localPlayerPtr, sizeof(unsigned int));
+  localPlayerPtr += localPlayerLea + 0x4;
 
-  unsigned long localPlayer;
-  readMemory(pid, m_addressOfLocalPlayer, &localPlayer, sizeof(long));
-  printf("LocalPlayer: 0x%lx\n", localPlayer);
+  unsigned long localPlayer = 0;
+  readMemory(pid, localPlayerPtr, &localPlayer, sizeof(long));
+  printf("LocalPlayer = 0x%lx\n", localPlayer);
 
-  int team, health;
-  unsigned long teamAddr = localPlayer + OFF_MY_TEAM;
-  unsigned long healthAddr = localPlayer + OFF_MY_HEALTH;
-  readMemory(pid, teamAddr, &team, sizeof(int));
-  readMemory(pid, healthAddr, &health, sizeof(int));
-  
-  printf("Team: %d (0x%lx)\n", team, teamAddr);
-  printf("Health: %d (0x%lx)\n", health, healthAddr);
+  int team, health, lifeState;
+  readMemory(pid, localPlayer + OFF_TEAM, &team, sizeof(int));
+  readMemory(pid, localPlayer + OFF_HEALTH, &health, sizeof(int));
+  readMemory(pid, localPlayer + OFF_LIFESTATE, &lifeState, sizeof(int));
+  printf("Check: Team (%d) Health (%d) Life state (%d)\n\n", team, health, lifeState);
+
+  time_t endTime = clock();
+  printf("Time elapsed: %.2f s\n",
+         (float)(endTime - startTime) / CLOCKS_PER_SEC);
 
   return EXIT_SUCCESS;
 }
