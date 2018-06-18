@@ -8,7 +8,7 @@
 int main(int argc, char* argv[]) {
   printf("CS:GO offsets dumper for Linux x64 (by foxadb)\n");
 
-  //////////////////////////// PARSING MEMORY MAP //////////////////////////////
+  //////////////////////////// Parsing memory map //////////////////////////////
 
   // Process id
   long pid = findPidByName("csgo_linux64");
@@ -27,10 +27,10 @@ int main(int argc, char* argv[]) {
   }
   printf("client_client.so: 0x%lx - 0x%lx\n", clientStart, clientEnd);
 
-  ///////////////////////////// SCANNING MEMORY ////////////////////////////////
-
   printf("Scanning memory...\n\n");
   time_t startTime = clock();
+
+  ////////////////////////////// LocalPlayer ///////////////////////////////////
 
   // Read LocalPlayer LEA address
   unsigned long localPlayerLea = 0;
@@ -50,7 +50,10 @@ int main(int argc, char* argv[]) {
   readMemory(pid, localPlayerPtr, &localPlayer, sizeof(unsigned long));
   readEntity(pid, localPlayer, entity);
   printEntity(entity);
+
   printf("\n");
+
+  //////////////////////////// PlayerResources /////////////////////////////////
 
   // Find PlayerResources pointer address
   unsigned long foundPlayerResources = 0;
@@ -64,11 +67,34 @@ int main(int argc, char* argv[]) {
   printf("PlayerResources = 0x%lx\n", playerResourcesPtr - clientStart);
 
   // Read player names
-  char* names = malloc(4096 * sizeof(char)); // 64 names = 64 * 64 char
+  char* names = malloc(4096 * sizeof(char));  // 64 names = 64 * 64 chars
   readPlayerNames(pid, playerResourcesPtr, names);
   for (int i = 0; i <= 10; ++i) {
     printf("Name %d: %s\n", i, names + 64 * i);
   }
+
+  printf("\n");
+
+  ////////////////////////////////// Glow //////////////////////////////////////
+
+  // Find Glow pointer call address
+  unsigned long foundGlowPtrCall = 0;
+  memoryPatternScan(pid, clientStart, clientEnd, PAT_GLOW_PTR_CALL,
+                    PAT_GLOW_PTR_CALL_SIZE, PAT_GLOW_PTR_CALL_OFF,
+                    &foundGlowPtrCall);
+  unsigned long glowPtrCall = 0;
+  readMemory(pid, foundGlowPtrCall, &glowPtrCall, sizeof(unsigned int));
+  glowPtrCall += foundGlowPtrCall + 0x4;
+
+  // Find Glow pointer address
+  unsigned long glowPtr = 0;
+  readMemory(pid, glowPtrCall, &glowPtr, sizeof(unsigned int));
+  glowPtr += glowPtrCall + 0x4;
+  printf("Glow = 0x%lx\n", glowPtr - clientStart);
+
+  printf("\n");
+
+  ///////////////////////////// End of program /////////////////////////////////
 
   // Timer measure
   time_t endTime = clock();

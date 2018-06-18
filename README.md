@@ -7,6 +7,12 @@ It uses pattern scanning to find offsets.
 
 :warning: I am not liable for VAC bans for using this program.
 
+## Offsets
+
+- LocalPlayer
+- PlayerResources
+- Glow
+
 ## Build
 
 This project requires CMake >= 2.8 for compiling.
