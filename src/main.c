@@ -1,12 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <unistd.h>
 #include "entity.h"
 #include "patterns.h"
 #include "utils.h"
 
 int main(int argc, char* argv[]) {
   printf("CS:GO offsets dumper for Linux x64 (by foxadb)\n");
+
+  if (getuid() != 0) {
+    fprintf(stderr, "Run the program as root (sudo)\n");
+    return EXIT_FAILURE;
+  }
 
   //////////////////////////// Parsing memory map //////////////////////////////
 
