@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
+#include "config.h"
 #include "entity.h"
 #include "patterns.h"
 #include "utils.h"
@@ -17,21 +18,21 @@ int main(int argc, char* argv[]) {
   //////////////////////////// Parsing memory map //////////////////////////////
 
   // Process id
-  long pid = findPidByName("csgo_linux64");
+  long pid = findPidByName(PROCESS_NAME);
 
   if (pid == -1) {
-    fprintf(stderr, "Process not found: Please run csgo_linux64\n");
+    fprintf(stderr, "Process not found: Please run %s\n", PROCESS_NAME);
     return EXIT_FAILURE;
   }
 
   // Find client address
   unsigned long clientStart = -1, clientEnd;
-  findMapRegionAddress(pid, "client_client.so", &clientStart, &clientEnd);
+  findMapRegionAddress(pid, CLIENT_SO, &clientStart, &clientEnd);
   if (clientStart == -1) {
-    fprintf(stderr, "client_client.so address not found\n");
+    fprintf(stderr, "Client address not found\n");
     return EXIT_FAILURE;
   }
-  printf("client_client.so: 0x%lx - 0x%lx\n", clientStart, clientEnd);
+  printf("Client (%s): 0x%lx - 0x%lx\n", CLIENT_SO, clientStart, clientEnd);
 
   printf("Scanning memory...\n\n");
   time_t startTime = clock();
@@ -95,7 +96,7 @@ int main(int argc, char* argv[]) {
   // Find Glow pointer address
   unsigned long glowPtr = 0;
   readMemory(pid, glowPtrCall, &glowPtr, sizeof(unsigned int));
-  glowPtr += glowPtrCall + 0x4;
+  glowPtr += glowPtrCall + 0x5;
   printf("Glow = 0x%lx\n", glowPtr - clientStart);
 
   printf("\n");
