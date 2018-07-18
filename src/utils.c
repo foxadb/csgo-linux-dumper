@@ -57,6 +57,10 @@ long findPidByName(char* processName) {
   // Close proc dir
   closedir(proc);
 
+  // Free the pattern buffers
+  regfree(&number);
+  regfree(&name);
+
   return pid;
 }
 
